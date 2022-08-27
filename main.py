@@ -54,27 +54,9 @@ IX_APP_FILE: int = 11
 
 UNDERDOT: str = "\u0323"
 
-CACHE_CHR = os.path.join("cache", "chr")
-CACHE_EN = os.path.join("cache", "en")
+ims_voices: list[str] = []
+amz_voices: list[str] = []
 
-IMS_VOICES_MALE: list[str] = ["en-345-m", "en-360-m"]
-# IMS_VOICES_FEMALE: list[str] = ["en-294-f", "en-330-f", "en-333-f", "en-361-f"]
-IMS_VOICES_FEMALE: list[str] = ["en-333-f", "en-361-f"]
-IMS_VOICES: list[str] = list()
-IMS_VOICES.extend(IMS_VOICES_FEMALE)
-IMS_VOICES.extend(IMS_VOICES_MALE)
-IMS_VOICES.sort()
-ims_voices: list[str] = list()
-
-AMZ_VOICES_MALE: list[str] = ["Joey"]
-# AMZ_VOICES_FEMALE: list[str] = ["Joanna", "Kendra", "Kimberly", "Salli"]
-AMZ_VOICES_FEMALE: list[str] = ["Kendra"]
-AMZ_VOICES: list[str] = list()
-AMZ_VOICES.extend(AMZ_VOICES_FEMALE)
-AMZ_VOICES.extend(AMZ_VOICES_MALE)
-amz_voices: list[str] = list()
-
-AMZ_HZ: str = "24000"
 LESSON_HZ: int = 48_000
 
 rand: Random = Random(1234)
@@ -119,23 +101,22 @@ def parse_args() -> Options:
 
 def next_ims_voice(gender: str = "") -> str:
     """Utility function to return a different non-repeated voice name based on gender"""
-    global IMS_VOICES_FEMALE, IMS_VOICES_MALE, rand
     global previous_voice, ims_voices
     if not ims_voices:
-        ims_voices.extend(IMS_VOICES_MALE)
-        ims_voices.extend(IMS_VOICES_FEMALE)
+        ims_voices.extend(tts.IMS_VOICES_MALE)
+        ims_voices.extend(tts.IMS_VOICES_FEMALE)
         rand.shuffle(ims_voices)
     voice: str = ims_voices.pop()
     if gender:
         if gender == "m":
-            if len(IMS_VOICES_MALE) < 2:
+            if len(tts.IMS_VOICES_MALE) < 2:
                 previous_voice = ""
-            if voice not in IMS_VOICES_MALE:
+            if voice not in tts.IMS_VOICES_MALE:
                 return next_ims_voice(gender)
         if gender == "f":
-            if len(IMS_VOICES_FEMALE) < 2:
+            if len(tts.IMS_VOICES_FEMALE) < 2:
                 previous_voice = ""
-            if voice not in IMS_VOICES_FEMALE:
+            if voice not in tts.IMS_VOICES_FEMALE:
                 return next_ims_voice(gender)
     if previous_voice and voice == previous_voice:
         return next_ims_voice(gender)
@@ -145,23 +126,23 @@ def next_ims_voice(gender: str = "") -> str:
 
 def next_amz_voice(gender: str = "") -> str:
     """Utility function to return a different non-repeated voice name based on gender"""
-    global AMZ_VOICES_FEMALE, AMZ_VOICES_MALE, rand
+    global rand
     global amz_previous_voice, amz_voices
     if not amz_voices:
-        amz_voices.extend(AMZ_VOICES_MALE)
-        amz_voices.extend(AMZ_VOICES_FEMALE)
+        amz_voices.extend(tts.AMZ_VOICES_MALE)
+        amz_voices.extend(tts.AMZ_VOICES_FEMALE)
         rand.shuffle(amz_voices)
     voice: str = amz_voices.pop()
     if gender:
         if gender == "m":
-            if len(AMZ_VOICES_MALE) < 2:
+            if len(tts.AMZ_VOICES_MALE) < 2:
                 amz_previous_voice = ""
-            if voice not in AMZ_VOICES_MALE:
+            if voice not in tts.AMZ_VOICES_MALE:
                 return next_amz_voice(gender)
         if gender == "f":
-            if len(AMZ_VOICES_FEMALE) < 2:
+            if len(tts.AMZ_VOICES_FEMALE) < 2:
                 amz_previous_voice = ""
-            if voice not in AMZ_VOICES_FEMALE:
+            if voice not in tts.AMZ_VOICES_FEMALE:
                 return next_amz_voice(gender)
     if voice == amz_previous_voice:
         return next_amz_voice(gender)
@@ -427,15 +408,15 @@ def fix_english_sex_genders(text_en) -> str:
 
 
 def create_card_audio(deck: LeitnerAudioDeck):
-    os.makedirs(CACHE_CHR, exist_ok=True)
-    os.makedirs(CACHE_EN, exist_ok=True)
+    os.makedirs(tts.CACHE_CHR, exist_ok=True)
+    os.makedirs(tts.CACHE_EN, exist_ok=True)
     entries: list[tts.TTSBatchEntry] = list()
     print("Scanning deck for cards needing Cherokee audio.")
     for card in tqdm(deck.cards):
         data: AudioData = card.data
         text_chr = data.challenge
         text_chr_alts = data.challenge_alts
-        for voice in IMS_VOICES:
+        for voice in tts.IMS_VOICES:
             data_file: AudioDataFile = AudioDataFile()
             data_file.file = tts.get_mp3_chr(voice, text_chr, cfg.alpha)
             data_file.voice = voice
@@ -468,7 +449,7 @@ def create_card_audio(deck: LeitnerAudioDeck):
     for card in tqdm(deck.cards):
         data: AudioData = card.data
         text_en = data.answer
-        for voice in AMZ_VOICES:
+        for voice in tts.AMZ_VOICES:
             data_file: AudioDataFile = AudioDataFile()
             data_file.file = tts.get_mp3_en(voice, text_en)
             data_file.voice = voice

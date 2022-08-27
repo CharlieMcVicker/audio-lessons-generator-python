@@ -17,10 +17,25 @@ from boto3_type_annotations.polly import Client as Polly
 from pydub import AudioSegment
 from pydub import effects
 
-from main import AMZ_HZ
-from main import CACHE_CHR
-from main import CACHE_EN
+CACHE_CHR = os.path.join("cache", "chr")
+CACHE_EN = os.path.join("cache", "en")
 
+AMZ_HZ: str = "24000"
+
+IMS_VOICES_MALE: list[str] = ["en-345-m", "en-360-m"]
+# IMS_VOICES_FEMALE: list[str] = ["en-294-f", "en-330-f", "en-333-f", "en-361-f"]
+IMS_VOICES_FEMALE: list[str] = ["en-333-f", "en-361-f"]
+IMS_VOICES: list[str] = list()
+IMS_VOICES.extend(IMS_VOICES_FEMALE)
+IMS_VOICES.extend(IMS_VOICES_MALE)
+IMS_VOICES.sort()
+
+AMZ_VOICES_MALE: list[str] = ["Joey"]
+# AMZ_VOICES_FEMALE: list[str] = ["Joanna", "Kendra", "Kimberly", "Salli"]
+AMZ_VOICES_FEMALE: list[str] = ["Kendra"]
+AMZ_VOICES: list[str] = list()
+AMZ_VOICES.extend(AMZ_VOICES_FEMALE)
+AMZ_VOICES.extend(AMZ_VOICES_MALE)
 
 @dataclasses.dataclass
 class TTSBatchEntry:
