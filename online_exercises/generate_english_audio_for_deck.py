@@ -1,17 +1,21 @@
 from dataclasses import asdict
 from json import load, dump
+import os
 from sys import argv
+import shutil
 
 from tts import AMZ_VOICES, get_mp3_en, tts_en
 
 from .structs import OnlineExercisesCard
+from .read_cll_deck import get_app_filename, get_cache_filename_from_app_filename
 
 def generate_audio_for_voice(voice: str, text: str) -> str:
     """
     Create English audio mp3 and return path.
     """
     tts_en(voice, text)
-    return get_mp3_en(voice, text)
+    cache_file = get_mp3_en(voice, text)
+    return get_app_filename(cache_file)
 
 def generate_english_audio(card : OnlineExercisesCard) -> OnlineExercisesCard:
     return OnlineExercisesCard(
@@ -27,6 +31,7 @@ def generate_english_audio(card : OnlineExercisesCard) -> OnlineExercisesCard:
 def main():
     deck_src = argv[2]
     deck_out = argv[3]
+    audio_out = argv[4]
 
     with open(deck_src) as f:
         json_deck = load(f)
@@ -35,3 +40,7 @@ def main():
     deck_with_audio = [generate_english_audio(card) for card in deck]
     with open(deck_out, 'w') as f:
         dump([asdict(card) for card in deck_with_audio], f, ensure_ascii=False, sort_keys=True)
+    
+    for card in deck_with_audio:
+        for appfile in card.english_audio:
+            shutil.copy(get_cache_filename_from_app_filename(appfile), os.path.join(audio_out, appfile))
