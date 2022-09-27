@@ -2,8 +2,10 @@ import json
 import os
 from pathlib import Path
 from dataclasses import asdict
+from sys import argv
 
 from config import Config
+from .generate_english_audio_for_deck import main as generate_english_main
 from .read_cll_deck import create_cards_and_batch_tts_for_cll_deck
 from .create_cll_vocab_set import create_and_dump_vocab_collection
 
@@ -32,7 +34,7 @@ def get_out_dir(cfg: Config, dataset: str):
 
     return out_dir
 
-if __name__ == '__main__':
+def create_cll_deck():
     dataset = 'cll1-v3'
     cfg = load_config(dataset)
     out_dir = get_out_dir(cfg, dataset)
@@ -46,3 +48,12 @@ if __name__ == '__main__':
         ensure_ascii=False,
         sort_keys=True # better for diffing
     )
+
+PROGRAMS = {
+    "create-cll-deck": create_cll_deck,
+    "generate-english-audio": generate_english_main
+}
+
+if __name__ == '__main__':
+    prog = argv[1]
+    PROGRAMS[prog]()
